@@ -1,0 +1,4 @@
+*.VC.opendb
+x64
+ipch
+.vs

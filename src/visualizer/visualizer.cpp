@@ -72,7 +72,7 @@ void Visualizer::initializeGL()
     for (int i=0; i<triangular_meshes_.size(); i++)
         addTriangularMeshBuffer(triangular_meshes_[i]);
 
-    //addAxisBuffer();
+    // addAxisBuffer();
 }
 
 void Visualizer::initializeOITBuffers()
@@ -170,13 +170,14 @@ void Visualizer::paintGL()
 
     gl_->glEnable(GL_DEPTH_TEST);
 
+    gl_->glUseProgram(mesh_shader_program_);
     for (int i=0; i<vaos_.size(); i++)
     {
-        gl_->glUseProgram(shader_types_[i]);
+        //gl_->glUseProgram(shader_types_[i]);
         gl_->glBindVertexArray(vaos_[i]);
         gl_->glDrawArrays(draw_types_[i], 0, num_vertices_[i]);
     }
-    //*/
+    */
 
     displayOIT();
 }
@@ -377,7 +378,7 @@ void Visualizer::mouseMoveEvent(QMouseEvent* event)
         update();
         break;
 
-    case Qt::LeftButton | Qt::RightButton:
+    case (int)Qt::LeftButton | (int)Qt::RightButton:
         camera_.zoomPixel(dx, dy);
         update();
         break;

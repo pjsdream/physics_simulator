@@ -8,7 +8,7 @@
 #include <QOpenGLFunctions_4_3_Core>
 
 #include <visualizer/camera.h>
-
+#include <visualizer/visualizer_object.h>
 
 namespace physics_simulator
 {

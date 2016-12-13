@@ -43,6 +43,11 @@ endif(NOT OPENGL_FOUND)
 # copy shaders to target directory
 file(COPY ${CMAKE_SOURCE_DIR}/shader DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
+# bullet
+set(BULLET_ROOT C:/lib/bullet3)
+find_package(Bullet REQUIRED)
+include_directories(${BULLET_INCLUDE_DIR})
+
 include_directories(
   include
 )

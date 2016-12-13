@@ -317,23 +317,6 @@ Eigen::Vector3d Simulator::transform(const Eigen::Vector3d point, const double s
 
 void Simulator::simulateOneTimestep()
 {
-    // dynamics
-    for (int i=0; i<spheres_.size(); i++)
-    {
-        spheres_[i].position += timestep_ * spheres_[i].velocity;
-    }
-
-    Eigen::Vector3d normals[num_objects_][num_objects_]; // normal vectors of object j that affects object i
-    int cnt[num_objects_][num_objects_];
-
-    for (int i=0; i<num_objects_; i++)
-    {
-        for (int j=0; j<num_objects_; j++)
-        {
-            cnt[i][j] = 0;
-            normals[i][j] = Eigen::Vector3d::Zero();
-        }
-    }
 }
 
 std::vector<Eigen::Vector3d> Simulator::getObjectVertexList(int object_id)
