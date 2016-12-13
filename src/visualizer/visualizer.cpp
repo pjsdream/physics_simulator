@@ -67,12 +67,6 @@ void Visualizer::initializeGL()
     oit_resolve_shader_program_ = linkShaderProgram(oit_resolve_shaders);
 
     initializeOITBuffers();
-
-    // initialize GL buffers
-    for (int i=0; i<triangular_meshes_.size(); i++)
-        addTriangularMeshBuffer(triangular_meshes_[i]);
-
-    // addAxisBuffer();
 }
 
 void Visualizer::initializeOITBuffers()
@@ -235,119 +229,12 @@ void Visualizer::displayOIT()
     gl_->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void Visualizer::addTriangularMesh(const std::vector<Eigen::Vector3d>& vertex_list, const std::vector<Eigen::Vector3d>& normal_list, const Eigen::Vector4d& color)
-{
-    TriangularMesh mesh;
-    mesh.vertex_list = vertex_list;
-    mesh.normal_list = normal_list;
-    mesh.color = color;
-    triangular_meshes_.push_back(mesh);
-    model_transformations_.push_back(Eigen::Affine3d::Identity());
-}
-
-void Visualizer::addTriangularMeshBuffer(const TriangularMesh &mesh)
-{
-    const GLuint shader_type = oit_build_shader_program_;
-
-    num_vertices_.push_back(mesh.vertex_list.size());
-    draw_types_.push_back(GL_TRIANGLES);
-    shader_types_.push_back(shader_type);
-
-    // buffer setup
-    const int buffer_size = mesh.vertex_list.size() * sizeof(float) * 10;
-    float* buffer = new float[ buffer_size ];
-
-    int index = 0;
-    for (int i=0; i<mesh.vertex_list.size(); i++)
-    {
-        buffer[index++] = mesh.vertex_list[i](0);
-        buffer[index++] = mesh.vertex_list[i](1);
-        buffer[index++] = mesh.vertex_list[i](2);
-        buffer[index++] = mesh.normal_list[i](0);
-        buffer[index++] = mesh.normal_list[i](1);
-        buffer[index++] = mesh.normal_list[i](2);
-        buffer[index++] = mesh.color(0);
-        buffer[index++] = mesh.color(1);
-        buffer[index++] = mesh.color(2);
-        buffer[index++] = mesh.color(3);
-    }
-
-    // gl buffer setup
-    gl_->glUseProgram(shader_type);
-
-    GLuint vao;
-    gl_->glGenVertexArrays(1, &vao);
-    vaos_.push_back(vao);
-
-    gl_->glBindVertexArray(vao);
-
-    GLuint vbo;
-    gl_->glGenBuffers(1, &vbo);
-    vbos_.push_back(vbo);
-
-    gl_->glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    gl_->glBufferData(GL_ARRAY_BUFFER, buffer_size, buffer, GL_STATIC_DRAW);
-
-    gl_->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (const GLvoid *)(sizeof(float) * 0));
-    gl_->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (const GLvoid *)(sizeof(float) * 3));
-    gl_->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (const GLvoid *)(sizeof(float) * 6));
-    gl_->glEnableVertexAttribArray(0);
-    gl_->glEnableVertexAttribArray(1);
-    gl_->glEnableVertexAttribArray(2);
-
-    delete buffer;
-}
-
 void Visualizer::setObjectPose(int object_id, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position)
 {
     Eigen::Affine3d m = Eigen::Affine3d::Identity();
     m.translate(position).rotate(orientation);
 
     model_transformations_[object_id] = m;
-}
-
-void Visualizer::addAxisBuffer()
-{
-    num_vertices_.push_back(6);
-    draw_types_.push_back(GL_LINES);
-    shader_types_.push_back(line_shader_program_);
-
-    // buffer
-    float buffer[6][7];
-    buffer[0][0] = 0.f; buffer[0][1] = 0.f; buffer[0][2] = 0.f;
-    buffer[1][0] = 1.f; buffer[1][1] = 0.f; buffer[1][2] = 0.f;
-    buffer[2][0] = 0.f; buffer[2][1] = 0.f; buffer[2][2] = 0.f;
-    buffer[3][0] = 0.f; buffer[3][1] = 1.f; buffer[3][2] = 0.f;
-    buffer[4][0] = 0.f; buffer[4][1] = 0.f; buffer[4][2] = 0.f;
-    buffer[5][0] = 0.f; buffer[5][1] = 0.f; buffer[5][2] = 1.f;
-
-    buffer[0][3] = 1.f; buffer[0][4] = 0.f; buffer[0][5] = 0.f; buffer[1][6] = 1.f;
-    buffer[1][3] = 1.f; buffer[1][4] = 0.f; buffer[1][5] = 0.f; buffer[1][6] = 1.f;
-    buffer[2][3] = 0.f; buffer[2][4] = 1.f; buffer[2][5] = 0.f; buffer[1][6] = 1.f;
-    buffer[3][3] = 0.f; buffer[3][4] = 1.f; buffer[3][5] = 0.f; buffer[1][6] = 1.f;
-    buffer[4][3] = 0.f; buffer[4][4] = 0.f; buffer[4][5] = 1.f; buffer[1][6] = 1.f;
-    buffer[5][3] = 0.f; buffer[5][4] = 0.f; buffer[5][5] = 1.f; buffer[1][6] = 1.f;
-
-    // gl buffer setup
-    gl_->glUseProgram(line_shader_program_);
-
-    GLuint vao;
-    gl_->glGenVertexArrays(1, &vao);
-    vaos_.push_back(vao);
-
-    gl_->glBindVertexArray(vao);
-
-    GLuint vbo;
-    gl_->glGenBuffers(1, &vbo);
-    vbos_.push_back(vbo);
-
-    gl_->glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    gl_->glBufferData(GL_ARRAY_BUFFER, sizeof(buffer), buffer, GL_STATIC_DRAW);
-
-    gl_->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const GLvoid *)(sizeof(float) * 0));
-    gl_->glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const GLvoid *)(sizeof(float) * 3));
-    gl_->glEnableVertexAttribArray(0);
-    gl_->glEnableVertexAttribArray(1);
 }
 
 void Visualizer::mousePressEvent(QMouseEvent* event)

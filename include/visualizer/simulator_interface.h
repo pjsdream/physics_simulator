@@ -21,19 +21,15 @@ public:
 
     SimulatorInterface(Simulator& simulator);
 
-    void setFrame(int frame);
-
 protected slots:
 
     void updateNextFrame();
 
 private:
 
-    Simulator simulator_;
+    Simulator& simulator_;
 
     Visualizer* visualizer_;
-
-    int frame_;
 };
 
 }

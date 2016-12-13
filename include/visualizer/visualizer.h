@@ -34,8 +34,6 @@ public:
     explicit Visualizer(QWidget* parent = 0);
     ~Visualizer();
 
-    void addTriangularMesh(const std::vector<Eigen::Vector3d>& vertex_list, const std::vector<Eigen::Vector3d>& normal_list, const Eigen::Vector4d& color);
-
     void setObjectPose(int object_id, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position);
 
 protected:
@@ -48,10 +46,6 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent* event);
 
 private:
-
-    void addTriangularMeshBuffer(const TriangularMesh& mesh);
-
-    void addAxisBuffer();
 
     void initializeOITBuffers();
     void displayOIT();
