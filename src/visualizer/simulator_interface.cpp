@@ -17,11 +17,18 @@ SimulatorInterface::SimulatorInterface(Simulator& simulator)
     show();
 
     // enroll visualization buffers
-    const btAlignedObjectArray<btCollisionShape*>& shapes = simulator_.getCollisionShapes();
-    for (int i=0; i<shapes.size(); i++)
+    int num_collision_objects = simulator_.getNumCollisionObjects();
+    for (int i=0; i<num_collision_objects; i++)
     {
-        const btCollisionShape* shape = shapes[i];
-        const Eigen::Vector4d color(i, 1-i, 0, 1);
+        const btCollisionObject* object = simulator_.getCollisionObject(i);
+
+        const btCollisionShape* shape = object->getCollisionShape();
+        Eigen::Vector4d color;
+
+        if (i==0)
+            color = Eigen::Vector4d(0.2, 0.2, 0.2, 1);
+        else
+            color = Eigen::Vector4d(1, 0, 0, 1);
 
         const btBoxShape* box_shape = dynamic_cast<const btBoxShape*>(shape);
         if (box_shape != 0)

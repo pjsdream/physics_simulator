@@ -11,6 +11,10 @@ namespace physics_simulator
 
 Eigen::Vector3d convertBulletVector3ToEigen(const btVector3& vec);
 Eigen::Quaterniond convertBulletQuaternionToEigen(const btQuaternion& q);
+btVector3 convertEigenVector3dToBullet(const Eigen::Vector3d& vec);
+btQuaternion convertEigenQuaternionToBullet(const Eigen::Quaterniond& q);
+
+btTransform convertEigenTransformToBullet(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation);
 
 }
 

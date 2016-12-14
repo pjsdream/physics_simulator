@@ -11,6 +11,8 @@
 #include <btBulletCollisionCommon.h>
 #include <BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.h>
 
+#include <physics/box_character.h>
+
 
 namespace physics_simulator
 {
@@ -33,7 +35,7 @@ public:
     
     const btAlignedObjectArray<btCollisionShape*>& getCollisionShapes() const
     {
-        return bulletCollisionShapes_;
+        return bullet_collision_shapes_;
     }
     
     int getNumCollisionObjects() const;
@@ -45,12 +47,18 @@ private:
   
     void initPhysics();
 
-    btAlignedObjectArray<btCollisionShape*> bulletCollisionShapes_;
-    btBroadphaseInterface* bulletBroadphase_;
-    btCollisionDispatcher* bulletDispatcher_;
-    btMultiBodyConstraintSolver* bulletSolver_;
-    btDefaultCollisionConfiguration* bulletCollisionConfiguration_;
-    btMultiBodyDynamicsWorld* bulletDynamicsWorld_;
+    void addGround();
+    void addBox();
+    void initBoxCharacter(double density);
+
+    btAlignedObjectArray<btCollisionShape*> bullet_collision_shapes_;
+    btBroadphaseInterface* bullet_broadphase_;
+    btCollisionDispatcher* bullet_dispatcher_;
+    btMultiBodyConstraintSolver* bullet_solver_;
+    btDefaultCollisionConfiguration* bullet_collision_configuration_;
+    btMultiBodyDynamicsWorld* bullet_dynamics_world_;
+
+    BoxCharacter* box_character_;
 };
 
 } // namespace physics_simulator

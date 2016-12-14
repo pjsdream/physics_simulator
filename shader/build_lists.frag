@@ -18,10 +18,10 @@ uniform vec3 eye_position;
 const int num_lights = 4;
 const vec3 light_position[num_lights] =
 {
-	vec3(-1,  0, 1),
-	vec3( 0, -1, 1),
-	vec3( 1,  0, 1),
-	vec3( 0,  1, 1)
+	vec3(-10,   0, 10),
+	vec3(  0, -10, 10),
+	vec3( 10,   0, 10),
+	vec3(  0,  10, 10)
 };
 
 const float ambient_constant = 0.1;
@@ -51,8 +51,8 @@ void main(void)
 
 	for (int i=0; i<num_lights; i++)
 	{
-		// vec3 L = normalize(light_position[i] - frag_position); // point source
-		vec3 L = normalize(light_position[i]); // parallel source
+		vec3 L = normalize(light_position[i] - frag_position); // point source
+		// vec3 L = normalize(light_position[i]); // parallel source
 		vec3 H = normalize(L + V);
 
 		float NdotL = dot(N, L);
