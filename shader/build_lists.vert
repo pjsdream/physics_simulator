@@ -24,8 +24,7 @@ void main(void)
     vec4 object_pos = vec4(position, 1.f);
     vec4 world_pos = model_matrix * object_pos;
     frag_position = world_pos.xyz;
-    //frag_normal = mat3(model_matrix * view_matrix) * normal;
-    frag_normal = mat3(view_matrix * model_matrix) * normal;
+    frag_normal = mat3(model_matrix) * normal;
 
     gl_Position = (projection_matrix * view_matrix) * world_pos;
 }

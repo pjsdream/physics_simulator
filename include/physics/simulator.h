@@ -30,17 +30,27 @@ class Simulator
 public:
 
     Simulator();
+    
+    const btAlignedObjectArray<btCollisionShape*>& getCollisionShapes() const
+    {
+        return bulletCollisionShapes_;
+    }
+    
+    int getNumCollisionObjects() const;
+    const btCollisionObject* getCollisionObject(int id) const;
+
+    void stepSimulation(double delta_time);
 
 private:
   
     void initPhysics();
 
-    btAlignedObjectArray<btCollisionShape*> bulletCollisionShapes;
-    btBroadphaseInterface* bulletBroadphase;
-    btCollisionDispatcher* bulletDispatcher;
-    btMultiBodyConstraintSolver* bulletSolver;
-    btDefaultCollisionConfiguration* bulletCollisionConfiguration;
-    btMultiBodyDynamicsWorld* bulletDynamicsWorld;
+    btAlignedObjectArray<btCollisionShape*> bulletCollisionShapes_;
+    btBroadphaseInterface* bulletBroadphase_;
+    btCollisionDispatcher* bulletDispatcher_;
+    btMultiBodyConstraintSolver* bulletSolver_;
+    btDefaultCollisionConfiguration* bulletCollisionConfiguration_;
+    btMultiBodyDynamicsWorld* bulletDynamicsWorld_;
 };
 
 } // namespace physics_simulator

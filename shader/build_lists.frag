@@ -13,7 +13,21 @@ in vec3 frag_position;
 in vec3 frag_normal;
 in vec4 surface_color;
 
-uniform vec3 light_position = vec3(0.0, 0.0, 10.0);
+uniform vec3 eye_position;
+
+const int num_lights = 4;
+const vec3 light_position[num_lights] =
+{
+	vec3(-1,  0, 1),
+	vec3( 0, -1, 1),
+	vec3( 1,  0, 1),
+	vec3( 0,  1, 1)
+};
+
+const float ambient_constant = 0.1;
+const float diffuse_constant = 0.5;
+const float spec_constant = 0.1;
+const float shininess = 0.;
 
 void main(void)
 {
@@ -26,22 +40,35 @@ void main(void)
 
     old_head = imageAtomicExchange(head_pointer_image, ivec2(gl_FragCoord.xy), uint(index));
 
-    vec3 L = normalize(light_position - frag_position);
-    vec3 V = normalize(-frag_position);
-    vec3 N = normalize(frag_normal);
-    vec3 H = normalize(L + V);
+	vec3 V = normalize(eye_position - frag_position);
+	vec3 N = normalize(frag_normal);
 
-    float NdotL = dot(N, L);
-    float NdotH = dot(N, H);
+	vec3 ambient_color = surface_color.rgb * ambient_constant;
+	vec3 diffuse_color = surface_color.rgb * diffuse_constant;
+	const vec3 spec_color = vec3(1.0);
 
-    vec4 modulator = vec4(surface_color.rgb * abs(NdotL), surface_color.a);
-    vec4 additive_component = mix(surface_color, vec4(1.0), 0.6) * vec4(pow(clamp(NdotH, 0.0, 1.0), 26.0)) * 0.7;
-    //vec4 additive_component = mix(surface_color, vec4(1.0), 0.6) * vec4(pow(clamp(NdotH, 0.0, 1.0), 26.0)) * 0.2;
+	vec4 modulator = vec4(ambient_color.xyz, surface_color.a);
+
+	for (int i=0; i<num_lights; i++)
+	{
+		// vec3 L = normalize(light_position[i] - frag_position); // point source
+		vec3 L = normalize(light_position[i]); // parallel source
+		vec3 H = normalize(L + V);
+
+		float NdotL = dot(N, L);
+		float NdotH = dot(N, H);
+
+		if (NdotL > 0.)
+		{
+			float spec = pow(max(NdotH, 0.), shininess) * spec_constant;
+			modulator.rgb += NdotL * diffuse_color + spec * spec_color;
+		}
+	}
 
     item.x = old_head;
     item.y = packUnorm4x8(modulator);
     item.z = floatBitsToUint(gl_FragCoord.z);
-    item.w = packUnorm4x8(additive_component);
+    item.w = 0;
 
     imageStore(list_buffer, int(index), item);
 

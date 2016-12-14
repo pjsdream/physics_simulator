@@ -56,6 +56,11 @@ public:
     Eigen::Matrix4d projectionMatrix();
     Eigen::Matrix4d viewMatrix();
 
+    inline const Eigen::Vector3d& eyePosition() const
+    {
+        return eye_;
+    }
+
 private:
 
     Eigen::Matrix4d perspective();

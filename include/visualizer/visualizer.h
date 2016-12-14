@@ -22,18 +22,16 @@ private:
     static const int MAX_FRAMEBUFFER_WIDTH = 2048;
     static const int MAX_FRAMEBUFFER_HEIGHT = 2048;
 
-    struct TriangularMesh
-    {
-        std::vector<Eigen::Vector3d> vertex_list;
-        std::vector<Eigen::Vector3d> normal_list;
-        Eigen::Vector4d color;
-    };
-
 public:
 
     explicit Visualizer(QWidget* parent = 0);
     ~Visualizer();
 
+    int addTriangularMeshBuffer(const std::vector<Eigen::Vector3d>& vertices, const std::vector<Eigen::Vector3d>& normals, const Eigen::Vector4d& color);
+    int addBoxBuffer(const Eigen::Vector3d& half_extents, const Eigen::Vector4d& color);
+    
+    int addObject(int buffer_id);
+    int addObject(int buffer_id, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position);
     void setObjectPose(int object_id, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position);
 
 protected:
@@ -75,6 +73,7 @@ private:
     GLuint oit_build_shader_location_model_matrix_;
     GLuint oit_build_shader_location_view_matrix_;
     GLuint oit_build_shader_location_projection_matrix_;
+    GLuint oit_build_shader_location_eye_position_;
 
     GLuint oit_resolve_vertex_shader_;
     GLuint oit_resolve_fragment_shader_;
@@ -88,16 +87,12 @@ private:
     GLuint oit_quad_vao_;
     GLuint oit_quad_vbo_;
 
-    // objects
-    std::vector<GLuint> vaos_;
-    std::vector<GLuint> vbos_;
-    std::vector<int> num_vertices_;
-    std::vector<GLuint> shader_types_;
-    std::vector<GLuint> draw_types_;
-    std::vector<Eigen::Affine3d> model_transformations_;
+    // visualizing objects
+    std::vector<int> object_ids_;
+    std::vector<Eigen::Affine3d> object_transformations_;
 
-    // objects before GL initialization
-    std::vector<TriangularMesh> triangular_meshes_;
+    // objects
+    std::vector<VisualizerObjectBuffer*> object_buffers_;
 
     int last_mouse_x_;
     int last_mouse_y_;

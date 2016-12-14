@@ -184,6 +184,7 @@ $(QTDIR)\bin\moc.exe "$(ProjectDir)..\..\include\visualizer\visualizer.h" -o "Ge
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\conversion\conversion_bullet_eigen.cpp" />
     <ClCompile Include="..\..\src\physics\simulator.cpp" />
     <ClCompile Include="..\..\src\visualizer\camera.cpp" />
     <ClCompile Include="..\..\src\visualizer\simulator_interface.cpp" />
@@ -194,6 +195,7 @@ $(QTDIR)\bin\moc.exe "$(ProjectDir)..\..\include\visualizer\visualizer.h" -o "Ge
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\conversion\conversion_bullet_eigen.h" />
     <ClInclude Include="..\..\include\physics\simulator.h" />
     <ClInclude Include="..\..\include\visualizer\camera.h" />
     <ClInclude Include="..\..\include\visualizer\simulator_interface.h" />

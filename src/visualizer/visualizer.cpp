@@ -25,6 +25,56 @@ Visualizer::~Visualizer()
 {
 }
 
+int Visualizer::addTriangularMeshBuffer(const std::vector<Eigen::Vector3d>& vertices, const std::vector<Eigen::Vector3d>& normals, const Eigen::Vector4d& color)
+{
+    makeCurrent();
+
+    VisualizerObjectBuffer* object_buffer = new VisualizerObjectBuffer(gl_);
+    object_buffer->setTriangularMesh(vertices, normals, color);
+
+    doneCurrent();
+
+    object_buffers_.push_back(object_buffer);
+    return object_buffers_.size() - 1;
+}
+
+int Visualizer::addBoxBuffer(const Eigen::Vector3d& half_extents, const Eigen::Vector4d& color)
+{
+    makeCurrent();
+
+    VisualizerObjectBuffer* object_buffer = new VisualizerObjectBuffer(gl_);
+    object_buffer->setBox(half_extents, color);
+
+    doneCurrent();
+
+    object_buffers_.push_back(object_buffer);
+    return object_buffers_.size() - 1;
+}
+
+int Visualizer::addObject(int buffer_id)
+{
+    return addObject(buffer_id, Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
+}
+
+int Visualizer::addObject(int buffer_id, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position)
+{
+    Eigen::Affine3d m = Eigen::Affine3d::Identity();
+    m.translate(position).rotate(orientation);
+
+    object_ids_.push_back(buffer_id);
+    object_transformations_.push_back(m);
+
+    return object_ids_.size() - 1;
+}
+
+void Visualizer::setObjectPose(int object_id, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position)
+{
+    Eigen::Affine3d m = Eigen::Affine3d::Identity();
+    m.translate(position).rotate(orientation);
+
+    object_transformations_[object_id] = m;
+}
+
 void Visualizer::initializeGL()
 {
     gl_ = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_4_3_Core>();
@@ -58,6 +108,7 @@ void Visualizer::initializeGL()
     oit_build_shader_location_model_matrix_ = gl_->glGetUniformLocation(oit_build_shader_program_, "model_matrix");
     oit_build_shader_location_view_matrix_ = gl_->glGetUniformLocation(oit_build_shader_program_, "view_matrix");
     oit_build_shader_location_projection_matrix_ = gl_->glGetUniformLocation(oit_build_shader_program_, "projection_matrix");
+    oit_build_shader_location_eye_position_ = gl_->glGetUniformLocation(oit_build_shader_program_, "eye_position");
 
     // oit resolve shaders
     oit_resolve_vertex_shader_ = loadShader(GL_VERTEX_SHADER, "shader/resolve_lists.vert");
@@ -205,21 +256,23 @@ void Visualizer::displayOIT()
 
     Eigen::Matrix4f view_matrix = camera_.viewMatrix().cast<float>();
     Eigen::Matrix4f projection_matrix = camera_.projectionMatrix().cast<float>();
+    const Eigen::Vector3f eye_position = camera_.eyePosition().cast<float>();
 
     gl_->glUniformMatrix4fv(oit_build_shader_location_view_matrix_, 1, GL_FALSE, view_matrix.data());
     gl_->glUniformMatrix4fv(oit_build_shader_location_projection_matrix_, 1, GL_FALSE, projection_matrix.data());
+    gl_->glUniform3fv(oit_build_shader_location_eye_position_, 1, eye_position.data());
 
     gl_->glEnable(GL_BLEND);
     gl_->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    for (int i=0; i<vaos_.size(); i++)
+    for (int i=0; i<object_ids_.size(); i++)
     {
-        Eigen::Matrix4f model_matrix = model_transformations_[i].matrix().cast<float>();
+        const int object_id = object_ids_[i];
+
+        Eigen::Matrix4f model_matrix = object_transformations_[i].matrix().cast<float>();
         gl_->glUniformMatrix4fv(oit_build_shader_location_model_matrix_, 1, GL_FALSE, model_matrix.data());
 
-        gl_->glUseProgram(shader_types_[i]);
-        gl_->glBindVertexArray(vaos_[i]);
-        gl_->glDrawArrays(draw_types_[i], 0, num_vertices_[i]);
+        object_buffers_[object_id]->draw();
     }
 
     gl_->glDisable(GL_BLEND);
@@ -227,14 +280,6 @@ void Visualizer::displayOIT()
     gl_->glBindVertexArray(oit_quad_vao_);
     gl_->glUseProgram(oit_resolve_shader_program_);
     gl_->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-}
-
-void Visualizer::setObjectPose(int object_id, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position)
-{
-    Eigen::Affine3d m = Eigen::Affine3d::Identity();
-    m.translate(position).rotate(orientation);
-
-    model_transformations_[object_id] = m;
 }
 
 void Visualizer::mousePressEvent(QMouseEvent* event)

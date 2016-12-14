@@ -1,5 +1,5 @@
-#ifndef PHYSICS_SIMULATOR_VISUALIZER_OBJECT_H
-#define PHYSICS_SIMULATOR_VISUALIZER_OBJECT_H
+#ifndef PHYSICS_SIMULATOR_VISUALIZER_OBJECT_BUFFER_H
+#define PHYSICS_SIMULATOR_VISUALIZER_OBJECT_BUFFER_H
 
 
 #include <QOpenGLFunctions_4_3_Core>
@@ -10,13 +10,14 @@
 namespace physics_simulator
 {
 
-class VisualizerObject
+class VisualizerObjectBuffer
 {
 public:
 
-    VisualizerObject(QOpenGLFunctions_4_3_Core* gl);
+    VisualizerObjectBuffer(QOpenGLFunctions_4_3_Core* gl);
 
     void setTriangularMesh(const std::vector<Eigen::Vector3d>& vertices, const std::vector<Eigen::Vector3d>& normals, const Eigen::Vector4d& color);
+    void setBox(const Eigen::Vector3d& half_extents, const Eigen::Vector4d& color);
 
     void draw();
 
@@ -33,4 +34,4 @@ private:
 }
 
 
-#endif // PHYSICS_SIMULATOR_VISUALIZER_OBJECT_H
+#endif // PHYSICS_SIMULATOR_VISUALIZER_OBJECT_BUFFER_H

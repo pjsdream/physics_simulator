@@ -74,29 +74,30 @@ void Simulator::initPhysics()
     // App_BulletExampleBrowser project -> MultiDofDemo.cpp
 
     // collision configuration contains default setup for memory, collision setup
-    bulletCollisionConfiguration = new btDefaultCollisionConfiguration();
+    bulletCollisionConfiguration_ = new btDefaultCollisionConfiguration();
 
     // use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
-    bulletDispatcher = new btCollisionDispatcher(bulletCollisionConfiguration);
+    bulletDispatcher_ = new btCollisionDispatcher(bulletCollisionConfiguration_);
 
-    bulletBroadphase = new btDbvtBroadphase();
+    bulletBroadphase_ = new btDbvtBroadphase();
 
     // Use the btMultiBodyConstraintSolver for Featherstone btMultiBody support
-    bulletSolver = new btMultiBodyConstraintSolver;
+    bulletSolver_ = new btMultiBodyConstraintSolver;
 
     // use btMultiBodyDynamicsWorld for Featherstone btMultiBody support
-    bulletDynamicsWorld = new btMultiBodyDynamicsWorld(bulletDispatcher, bulletBroadphase, bulletSolver, bulletCollisionConfiguration);
-    bulletDynamicsWorld->setGravity(btVector3(0, 0, -9.8));
+    bulletDynamicsWorld_ = new btMultiBodyDynamicsWorld(bulletDispatcher_, bulletBroadphase_, bulletSolver_, bulletCollisionConfiguration_);
+    bulletDynamicsWorld_->setGravity(btVector3(0, 0, -9.8));
     
-
-    // add rigid bodies
-    btVector3 groundHalfExtents(50, 50, 50);
-    btCollisionShape* groundShape = new btBoxShape(groundHalfExtents);
-	btTransform groundTransform;
 
     // add ground
     {
-        btScalar groundHeight = 0.;
+        btVector3 groundHalfExtents(10, 10, 10);
+        btCollisionShape* groundShape = new btBoxShape(groundHalfExtents);
+	    btTransform groundTransform;
+
+        bulletCollisionShapes_.push_back(groundShape);
+
+        btScalar groundHeight = -10.;
         btScalar mass(0.);
 
         //rigidbody is dynamic if and only if mass is non zero, otherwise static
@@ -114,10 +115,56 @@ void Simulator::initPhysics()
         btRigidBody* body = new btRigidBody(rbInfo);
 
         //add the body to the dynamics world
-        bulletDynamicsWorld->addRigidBody(body, 1, 1 + 2); // collision group & mask for static object
+        bulletDynamicsWorld_->addRigidBody(body, 1, 1 + 2); // collision group & mask for static object
+    }
+
+    // TEST: add box
+    {
+		btVector3 halfExtents(.05,.05,.05);
+		btBoxShape* colShape = new btBoxShape(halfExtents);
+		//btCollisionShape* colShape = new btSphereShape(btScalar(1.));
+		bulletCollisionShapes_.push_back(colShape);
+
+		/// Create Dynamic Objects
+		btTransform startTransform;
+		startTransform.setIdentity();
+
+		btScalar	mass(1.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isDynamic = (mass != 0.f);
+
+		btVector3 localInertia(0,0,0);
+		if (isDynamic)
+			colShape->calculateLocalInertia(mass,localInertia);
+
+		startTransform.setOrigin(btVector3(0, 0, 10));
+
+			
+		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
+		btRigidBody* body = new btRigidBody(rbInfo);
+        			
+		bulletDynamicsWorld_->addRigidBody(body);;
     }
 
     // add multibody
+}
+
+int Simulator::getNumCollisionObjects() const
+{
+    return bulletDynamicsWorld_->getNumCollisionObjects();
+}
+
+const btCollisionObject* Simulator::getCollisionObject(int id) const
+{
+    return bulletDynamicsWorld_->getCollisionObjectArray()[id];
+}
+
+void Simulator::stepSimulation(double delta_time)
+{
+    bulletDynamicsWorld_->stepSimulation(delta_time);
 }
 
 } // namespace hw2
