@@ -2,6 +2,7 @@
 
 #include <conversion/conversion_bullet_eigen.h>
 #include <BulletDynamics/Featherstone/btMultiBodyLinkCollider.h>
+#include <BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.h>
 
 
 namespace physics_simulator
@@ -33,7 +34,8 @@ BoxCharacter::BoxCharacter(double base_density, const Eigen::Vector3d& half_exte
 
 void BoxCharacter::addBoxRevolute(int parent, double density, const Eigen::Vector3d& half_extents,
                                   const Eigen::Quaterniond& rot_parent_to_this, const Eigen::Vector3d& offset_parent_com_to_this_pivot, const Eigen::Vector3d& offset_this_pivot_to_this_com,
-                                  const Eigen::Vector3d& axis)
+                                  const Eigen::Vector3d& axis,
+                                  bool disable_parent_collision)
 {
     double mass;
     Eigen::Vector3d inertia;
@@ -48,10 +50,15 @@ void BoxCharacter::addBoxRevolute(int parent, double density, const Eigen::Vecto
     rot_parent_to_this_.push_back(rot_parent_to_this);
     offset_parent_com_to_this_pivot_.push_back(offset_parent_com_to_this_pivot);
     offset_this_pivot_to_this_com_.push_back(offset_this_pivot_to_this_com);
+    disable_parent_collision_.push_back(disable_parent_collision);
+    
+    joint_lower_.push_back(Eigen::Vector3d( 1, 0, 0));
+    joint_upper_.push_back(Eigen::Vector3d(-1, 0, 0));
 }
 
 void BoxCharacter::addBoxSpherical(int parent, double density, const Eigen::Vector3d& half_extents,
-                                   const Eigen::Quaterniond& rot_parent_to_this, const Eigen::Vector3d& offset_parent_com_to_this_pivot, const Eigen::Vector3d& offset_this_pivot_to_this_com)
+                                   const Eigen::Quaterniond& rot_parent_to_this, const Eigen::Vector3d& offset_parent_com_to_this_pivot, const Eigen::Vector3d& offset_this_pivot_to_this_com,
+                                   bool disable_parent_collision)
 {
     double mass;
     Eigen::Vector3d inertia;
@@ -66,6 +73,22 @@ void BoxCharacter::addBoxSpherical(int parent, double density, const Eigen::Vect
     rot_parent_to_this_.push_back(rot_parent_to_this);
     offset_parent_com_to_this_pivot_.push_back(offset_parent_com_to_this_pivot);
     offset_this_pivot_to_this_com_.push_back(offset_this_pivot_to_this_com);
+    disable_parent_collision_.push_back(disable_parent_collision);
+
+    joint_lower_.push_back(Eigen::Vector3d( 1,  1,  1));
+    joint_upper_.push_back(Eigen::Vector3d(-1, -1, -1));
+}
+
+void BoxCharacter::setJointLimits(int id, double lower, double upper)
+{
+    joint_lower_[id] = Eigen::Vector3d(lower, 0, 0);
+    joint_upper_[id] = Eigen::Vector3d(upper, 0, 0);
+}
+
+void BoxCharacter::setJointLimits(int id, const Eigen::Vector3d& lower, const Eigen::Vector3d& upper)
+{
+    joint_lower_[id] = lower;
+    joint_upper_[id] = upper;
 }
 
 void BoxCharacter::setBasePose(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation)
@@ -90,7 +113,14 @@ btMultiBody* BoxCharacter::generateBulletMultiBody(btMultiBodyDynamicsWorld* dyn
                                             convertEigenVector3dToBullet(joint_axis_[i]),
                                             convertEigenVector3dToBullet(offset_parent_com_to_this_pivot_[i]),
                                             convertEigenVector3dToBullet(offset_this_pivot_to_this_com_[i]),
-                                            false);
+                                            disable_parent_collision_[i]);
+            
+            if (joint_lower_[i](0) < joint_upper_[i](0))
+            {
+                btMultiBodyConstraint* con = new btMultiBodyJointLimitConstraint(bulletMultiBody_, i, joint_lower_[i](0), joint_upper_[i](0));
+                dynamics_world->addMultiBodyConstraint(con);
+            }
+
             break;
 
         case JointSpherical:
@@ -98,7 +128,8 @@ btMultiBody* BoxCharacter::generateBulletMultiBody(btMultiBodyDynamicsWorld* dyn
                                              convertEigenQuaternionToBullet(rot_parent_to_this_[i]),
                                              convertEigenVector3dToBullet(offset_parent_com_to_this_pivot_[i]),
                                              convertEigenVector3dToBullet(offset_this_pivot_to_this_com_[i]),
-                                             false);
+                                             disable_parent_collision_[i]);
+            
             break;
         }
     }

@@ -34,10 +34,15 @@ public:
 
     void addBoxRevolute(int parent, double density, const Eigen::Vector3d& half_extents,
                         const Eigen::Quaterniond& rot_parent_to_this, const Eigen::Vector3d& offset_parent_com_to_this_pivot, const Eigen::Vector3d& offset_this_pivot_to_this_com,
-                        const Eigen::Vector3d& axis);
+                        const Eigen::Vector3d& axis,
+                        bool disable_parent_collision);
 
     void addBoxSpherical(int parent, double density, const Eigen::Vector3d& half_extents,
-                         const Eigen::Quaterniond& rot_parent_to_this, const Eigen::Vector3d& offset_parent_com_to_this_pivot, const Eigen::Vector3d& offset_this_pivot_to_this_com);
+                         const Eigen::Quaterniond& rot_parent_to_this, const Eigen::Vector3d& offset_parent_com_to_this_pivot, const Eigen::Vector3d& offset_this_pivot_to_this_com,
+                         bool disable_parent_collision);
+
+    void setJointLimits(int id, double lower, double upper);
+    void setJointLimits(int id, const Eigen::Vector3d& lower, const Eigen::Vector3d& upper);
 
     void setBasePose(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation);
 
@@ -72,6 +77,10 @@ private:
     std::vector<Eigen::Quaterniond> rot_parent_to_this_;
     std::vector<Eigen::Vector3d> offset_parent_com_to_this_pivot_;
     std::vector<Eigen::Vector3d> offset_this_pivot_to_this_com_;
+    std::vector<char> disable_parent_collision_;
+
+    std::vector<Eigen::Vector3d> joint_lower_;
+    std::vector<Eigen::Vector3d> joint_upper_;
 
     btMultiBody* bulletMultiBody_;
 };

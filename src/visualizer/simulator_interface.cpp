@@ -41,7 +41,7 @@ SimulatorInterface::SimulatorInterface(Simulator& simulator)
 
     // timer
     QTimer* timer = new QTimer(this);
-    timer->setInterval(10);
+    timer->setInterval(16);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateNextFrame()));
     timer->start();
 }
@@ -49,7 +49,7 @@ SimulatorInterface::SimulatorInterface(Simulator& simulator)
 void SimulatorInterface::updateNextFrame()
 {
     // simulate timestep
-    simulator_.stepSimulation(0.01);
+    simulator_.stepSimulation(1. / 60.);
 
     // update visualizer object poses
     int num_collision_objects = simulator_.getNumCollisionObjects();

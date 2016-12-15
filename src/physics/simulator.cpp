@@ -108,6 +108,13 @@ const btCollisionObject* Simulator::getCollisionObject(int id) const
 
 void Simulator::stepSimulation(double delta_time)
 {
+    box_character_->getMultiBody()->addJointTorque(0, -0.09 * delta_time);
+    box_character_->getMultiBody()->addJointTorque(1, 0.03 * delta_time);
+    box_character_->getMultiBody()->addJointTorque(2, 0.02 * delta_time);
+    box_character_->getMultiBody()->addJointTorque(3, 0.09 * delta_time);
+    box_character_->getMultiBody()->addJointTorque(4, -0.01 * delta_time);
+    box_character_->getMultiBody()->addJointTorque(5, 0.01 * delta_time);
+
     bullet_dynamics_world_->stepSimulation(delta_time);
 }
 
@@ -173,23 +180,44 @@ void Simulator::addBox()
 void Simulator::initBoxCharacter(double density)
 {
     const double gap = 0.01;
+    const double r = M_PI / 2.;
 
-    box_character_ = new BoxCharacter(density, Eigen::Vector3d(0.15, 0.1, 0.3), Eigen::Vector3d(0, 0, 1.1), Eigen::Quaterniond::Identity());
+    box_character_ = new BoxCharacter(density, Eigen::Vector3d(0.15, 0.07, 0.3), Eigen::Vector3d(0, 0, 1.0), Eigen::Quaterniond::Identity());
 
     // leg1
-    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.10, 0.00, -0.30 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap));
-    box_character_->addBoxRevolute ( 0, density, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap), Eigen::Vector3d(1, 0, 0));
-    box_character_->addBoxRevolute ( 1, density, Eigen::Vector3d(0.05, 0.10, 0.02), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.05, -0.02 - gap), Eigen::Vector3d(1, 0, 0));
+    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.10, 0.00, -0.30 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap), false);
+    box_character_->addBoxRevolute ( 0, density*5, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap), Eigen::Vector3d(1, 0, 0), true);
+    box_character_->addBoxRevolute ( 1, density*5, Eigen::Vector3d(0.07, 0.12, 0.02), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.05, -0.02 - gap), Eigen::Vector3d(1, 0, 0), true);
+    box_character_->setJointLimits(1, -r*1.5, 0);
+    box_character_->setJointLimits(2, -r, r/2);
 
     // leg2
-    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d(-0.10, 0.00, -0.30 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap));
-    box_character_->addBoxRevolute ( 3, density, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap), Eigen::Vector3d(1, 0, 0));
-    box_character_->addBoxRevolute ( 4, density, Eigen::Vector3d(0.05, 0.10, 0.02), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.05, -0.02 - gap), Eigen::Vector3d(1, 0, 0));
+    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d(-0.10, 0.00, -0.30 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap), false);
+    box_character_->addBoxRevolute ( 3, density*5, Eigen::Vector3d(0.05, 0.05, 0.15), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.00, -0.15 - gap), Eigen::Vector3d(1, 0, 0), true);
+    box_character_->addBoxRevolute ( 4, density*5, Eigen::Vector3d(0.07, 0.12, 0.02), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00, -0.15 - gap), Eigen::Vector3d(0, 0.05, -0.02 - gap), Eigen::Vector3d(1, 0, 0), true);
+    box_character_->setJointLimits(4, -r*1.5, 0);
+    box_character_->setJointLimits(5, -r, r/2);
 
     // head
-    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.08, 0.08, 0.08), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00,  0.30 + gap), Eigen::Vector3d(0, 0.00,  0.08 + gap));
+    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.08, 0.08, 0.08), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.00, 0.00,  0.30 + gap), Eigen::Vector3d(0, 0.00,  0.08 + gap), false);
+
+    // arm1
+    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.15, 0.05, 0.05), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.20 + gap, 0.00,  0.20), Eigen::Vector3d( 0.15 + gap, 0.00, 0.00), false);
+    box_character_->addBoxRevolute ( 7, density, Eigen::Vector3d(0.15, 0.05, 0.05), Eigen::Quaterniond::Identity(), Eigen::Vector3d( 0.15 + gap, 0.00,  0.00), Eigen::Vector3d( 0.15 + gap, 0.00, 0.00), Eigen::Vector3d(0, 0, 1), true);
+    box_character_->setJointLimits(8, 0, r*1.5);
+
+    // arm2
+    box_character_->addBoxSpherical(-1, density, Eigen::Vector3d(0.15, 0.05, 0.05), Eigen::Quaterniond::Identity(), Eigen::Vector3d(-0.20 - gap, 0.00,  0.20), Eigen::Vector3d(-0.15 - gap, 0.00, 0.00), false);
+    box_character_->addBoxRevolute ( 9, density, Eigen::Vector3d(0.15, 0.05, 0.05), Eigen::Quaterniond::Identity(), Eigen::Vector3d(-0.15 - gap, 0.00,  0.00), Eigen::Vector3d(-0.15 - gap, 0.00, 0.00), Eigen::Vector3d(0, 0, 1), true);
+    box_character_->setJointLimits(10, -r*1.5, 0);
 
     btMultiBody* multi_body = box_character_->generateBulletMultiBody(bullet_dynamics_world_);
+
+    btVector4 v;
+    v = btVector4(cos(-r/2), 0, sin(-r/2), 0);
+    multi_body->setJointPosMultiDof(7, v);
+    v = btVector4(cos(r/2), 0, sin(r/2), 0);
+    multi_body->setJointPosMultiDof(9, v);
 
     bullet_dynamics_world_->addMultiBody(multi_body);
 }
